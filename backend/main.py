@@ -22,8 +22,10 @@ from models import (
     Education,
     ExperienceProject,
     IdentityCard,
+    InspirationItem,
     PhotoLink,
     Project,
+    SiteSettings,
     StartupIdea,
     WeekSummary,
     WorkExperience,
@@ -34,24 +36,42 @@ from schemas import (
     ArticleUpdate,
     DayEntryCreate,
     DayEntryOut,
+    EducationCreate,
     EducationOut,
+    EducationUpdate,
     ExperienceOut,
+    ExperienceProjectCreate,
     ExperienceProjectDetailOut,
     ExperienceProjectOut,
+    ExperienceProjectUpdate,
+    ExploreCard,
     IdentityCardOut,
     IdentityCardUpdate,
+    InspirationItemCreate,
+    InspirationItemOut,
+    InspirationItemUpdate,
+    InspirationTodayOut,
     LoginRequest,
     MLComponent,
     PhotoLinkCreate,
     PhotoLinkOut,
+    PhotoLinkUpdate,
+    ProjectCreate,
     ProjectOut,
+    ProjectUpdate,
+    SiteSettingsOut,
+    SiteSettingsUpdate,
+    StartupIdeaCreate,
     StartupIdeaOut,
+    StartupIdeaUpdate,
     Token,
     UploadOut,
     WeekDayOut,
     WeekSummaryOut,
     WeekSummaryUpdate,
+    WorkExperienceCreate,
     WorkExperienceOut,
+    WorkExperienceUpdate,
 )
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -61,6 +81,92 @@ UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 ALLOWED_IMAGE_EXT = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"}
 ALLOWED_EXCALIDRAW_EXT = {".excalidraw"}
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024
+
+DEFAULT_EXPLORE_CARDS = [
+    {"num": "01", "icon": "✎", "title": "Writing", "desc": "Research papers, taken apart and rebuilt from their core components.", "to": "/writing"},
+    {"num": "02", "icon": "◈", "title": "Systems", "desc": "Designing the ML systems everyone uses — and showing the reasoning.", "to": "/systems"},
+    {"num": "03", "icon": "◎", "title": "Photography", "desc": "A working portfolio. Cities, light, and the occasional whiteboard.", "to": "/photography"},
+    {"num": "04", "icon": "{ }", "title": "Code", "desc": "Small, sharp pieces — annotated line by line.", "to": "/writing?category=notes"},
+    {"num": "05", "icon": "↗", "title": "Projects", "desc": "Things I'm building and startup ideas I can't stop thinking about.", "to": "/projects"},
+]
+
+
+def _env_defaults() -> dict:
+    return {
+        "name": os.environ.get("SITE_NAME", "srikanthsistu website"),
+        "tagline": os.environ.get("SITE_TAGLINE", "writing, systems & photography"),
+        "location": os.environ.get("SITE_LOCATION", "Lisbon"),
+        "github": os.environ.get("SITE_GITHUB", "https://github.com/sistusrikanth"),
+        "twitter": os.environ.get("SITE_TWITTER", ""),
+        "email": os.environ.get("SITE_EMAIL", ""),
+        "now_text": os.environ.get(
+            "SITE_NOW_TEXT",
+            "Writing up a piece on KV-cache eviction. Shooting a roll of Portra in Lisbon.",
+        ),
+        "index_eyebrow": "Writer + ML Systems + Photography",
+        "index_hero": "I break complex systems down to their essence.",
+        "index_intro": (
+            "I read the research so the ideas show through, design machine-learning systems in the open, "
+            "and photograph the world in between."
+        ),
+        "mission_statement": (
+            "Make the hidden wiring visible — through clear writing, honest systems, and a steady eye on the world."
+        ),
+        "index_explore": json.dumps(DEFAULT_EXPLORE_CARDS),
+    }
+
+
+def _parse_explore(raw: str) -> list[ExploreCard]:
+    try:
+        data = json.loads(raw or "[]")
+        return [ExploreCard(**item) for item in data]
+    except (json.JSONDecodeError, TypeError, ValueError):
+        return [ExploreCard(**item) for item in DEFAULT_EXPLORE_CARDS]
+
+
+def _get_or_create_settings(db: Session) -> SiteSettings:
+    settings = db.query(SiteSettings).filter(SiteSettings.id == 1).first()
+    if settings:
+        if not getattr(settings, "mission_statement", None):
+            settings.mission_statement = _env_defaults()["mission_statement"]
+            db.commit()
+            db.refresh(settings)
+        return settings
+    defaults = _env_defaults()
+    settings = SiteSettings(id=1, **defaults)
+    db.add(settings)
+    db.commit()
+    db.refresh(settings)
+    return settings
+
+
+def _settings_out(settings: SiteSettings) -> SiteSettingsOut:
+    return SiteSettingsOut(
+        name=settings.name,
+        tagline=settings.tagline,
+        location=settings.location,
+        github=settings.github,
+        twitter=settings.twitter,
+        email=settings.email,
+        now_text=settings.now_text,
+        index_eyebrow=settings.index_eyebrow,
+        index_hero=settings.index_hero,
+        index_intro=settings.index_intro,
+        mission_statement=getattr(settings, "mission_statement", "") or "",
+        index_explore=_parse_explore(settings.index_explore),
+    )
+
+
+def _validate_ml_components(raw: str) -> str:
+    try:
+        data = json.loads(raw or "[]")
+        if not isinstance(data, list):
+            raise ValueError
+        for item in data:
+            MLComponent(**item)
+        return json.dumps(data)
+    except (json.JSONDecodeError, TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="ml_components must be a JSON array of {name, description, technical_aspects}")
 
 
 def slugify(text: str) -> str:
@@ -308,6 +414,50 @@ def _seed_identity(db: Session):
     db.commit()
 
 
+def _seed_inspiration(db: Session):
+    if db.query(InspirationItem).count() > 0:
+        return
+    db.add_all([
+        InspirationItem(
+            kind="quote",
+            content="The obstacle is the way.",
+            source="Marcus Aurelius",
+            sort_order=1,
+        ),
+        InspirationItem(
+            kind="quote",
+            content="We suffer more often in imagination than in reality.",
+            source="Seneca",
+            sort_order=2,
+        ),
+        InspirationItem(
+            kind="quote",
+            content="The only way to do great work is to love what you do.",
+            source="Steve Jobs",
+            sort_order=3,
+        ),
+        InspirationItem(
+            kind="moves_me",
+            content="A single photograph that captures golden hour on empty streets — proof that patience is its own reward.",
+            source="Personal",
+            sort_order=1,
+        ),
+        InspirationItem(
+            kind="moves_me",
+            content="Reading a paper where the authors clearly struggled, failed, and still shipped something honest.",
+            source="Research",
+            sort_order=2,
+        ),
+        InspirationItem(
+            kind="moves_me",
+            content="The moment a complex system finally clicks — when the diagram matches reality.",
+            source="Engineering",
+            sort_order=3,
+        ),
+    ])
+    db.commit()
+
+
 def _seed_experience(db: Session):
     if db.query(Education).count() > 0:
         return
@@ -458,6 +608,7 @@ Built a serving layer that let multiple product teams deploy ONNX and PyTorch mo
 def _migrate_schema() -> None:
     migrations = [
         "ALTER TABLE week_summaries ADD COLUMN is_custom BOOLEAN DEFAULT 0",
+        "ALTER TABLE site_settings ADD COLUMN mission_statement TEXT DEFAULT ''",
     ]
     with engine.begin() as conn:
         for sql in migrations:
@@ -475,7 +626,9 @@ async def lifespan(app: FastAPI):
     try:
         seed_data(db)
         _seed_identity(db)
+        _seed_inspiration(db)
         _seed_experience(db)
+        _get_or_create_settings(db)
     finally:
         db.close()
     yield
@@ -646,6 +799,275 @@ def delete_photo(photo_id: int, _: bool = Depends(require_admin), db: Session = 
     return {"ok": True}
 
 
+@app.put("/api/admin/photos/{photo_id}", response_model=PhotoLinkOut)
+def update_photo(
+    photo_id: int,
+    body: PhotoLinkUpdate,
+    _: bool = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    photo = db.query(PhotoLink).filter(PhotoLink.id == photo_id).first()
+    if not photo:
+        raise HTTPException(status_code=404, detail="Photo not found")
+    for key, value in body.model_dump(exclude_unset=True).items():
+        setattr(photo, key, value)
+    db.commit()
+    db.refresh(photo)
+    return photo
+
+
+# --- Projects (admin) ---
+
+@app.get("/api/admin/projects", response_model=list[ProjectOut])
+def admin_list_projects(_: bool = Depends(require_admin), db: Session = Depends(get_db)):
+    return db.query(Project).order_by(Project.sort_order).all()
+
+
+@app.post("/api/admin/projects", response_model=ProjectOut)
+def create_project(body: ProjectCreate, _: bool = Depends(require_admin), db: Session = Depends(get_db)):
+    project = Project(**body.model_dump())
+    db.add(project)
+    db.commit()
+    db.refresh(project)
+    return project
+
+
+@app.put("/api/admin/projects/{project_id}", response_model=ProjectOut)
+def update_project(
+    project_id: int,
+    body: ProjectUpdate,
+    _: bool = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    for key, value in body.model_dump(exclude_unset=True).items():
+        setattr(project, key, value)
+    db.commit()
+    db.refresh(project)
+    return project
+
+
+@app.delete("/api/admin/projects/{project_id}")
+def delete_project(project_id: int, _: bool = Depends(require_admin), db: Session = Depends(get_db)):
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    db.delete(project)
+    db.commit()
+    return {"ok": True}
+
+
+# --- Startup ideas (admin) ---
+
+@app.get("/api/admin/ideas", response_model=list[StartupIdeaOut])
+def admin_list_ideas(_: bool = Depends(require_admin), db: Session = Depends(get_db)):
+    return db.query(StartupIdea).order_by(StartupIdea.sort_order).all()
+
+
+@app.post("/api/admin/ideas", response_model=StartupIdeaOut)
+def create_idea(body: StartupIdeaCreate, _: bool = Depends(require_admin), db: Session = Depends(get_db)):
+    idea = StartupIdea(**body.model_dump())
+    db.add(idea)
+    db.commit()
+    db.refresh(idea)
+    return idea
+
+
+@app.put("/api/admin/ideas/{idea_id}", response_model=StartupIdeaOut)
+def update_idea(
+    idea_id: int,
+    body: StartupIdeaUpdate,
+    _: bool = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    idea = db.query(StartupIdea).filter(StartupIdea.id == idea_id).first()
+    if not idea:
+        raise HTTPException(status_code=404, detail="Idea not found")
+    for key, value in body.model_dump(exclude_unset=True).items():
+        setattr(idea, key, value)
+    db.commit()
+    db.refresh(idea)
+    return idea
+
+
+@app.delete("/api/admin/ideas/{idea_id}")
+def delete_idea(idea_id: int, _: bool = Depends(require_admin), db: Session = Depends(get_db)):
+    idea = db.query(StartupIdea).filter(StartupIdea.id == idea_id).first()
+    if not idea:
+        raise HTTPException(status_code=404, detail="Idea not found")
+    db.delete(idea)
+    db.commit()
+    return {"ok": True}
+
+
+# --- Experience (admin) ---
+
+@app.get("/api/admin/education", response_model=list[EducationOut])
+def admin_list_education(_: bool = Depends(require_admin), db: Session = Depends(get_db)):
+    return db.query(Education).order_by(Education.sort_order).all()
+
+
+@app.post("/api/admin/education", response_model=EducationOut)
+def create_education(body: EducationCreate, _: bool = Depends(require_admin), db: Session = Depends(get_db)):
+    item = Education(**body.model_dump())
+    db.add(item)
+    db.commit()
+    db.refresh(item)
+    return item
+
+
+@app.put("/api/admin/education/{item_id}", response_model=EducationOut)
+def update_education(
+    item_id: int,
+    body: EducationUpdate,
+    _: bool = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    item = db.query(Education).filter(Education.id == item_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Education not found")
+    for key, value in body.model_dump(exclude_unset=True).items():
+        setattr(item, key, value)
+    db.commit()
+    db.refresh(item)
+    return item
+
+
+@app.delete("/api/admin/education/{item_id}")
+def delete_education(item_id: int, _: bool = Depends(require_admin), db: Session = Depends(get_db)):
+    item = db.query(Education).filter(Education.id == item_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Education not found")
+    db.delete(item)
+    db.commit()
+    return {"ok": True}
+
+
+@app.get("/api/admin/work", response_model=list[WorkExperienceOut])
+def admin_list_work(_: bool = Depends(require_admin), db: Session = Depends(get_db)):
+    return db.query(WorkExperience).order_by(WorkExperience.sort_order).all()
+
+
+@app.post("/api/admin/work", response_model=WorkExperienceOut)
+def create_work(body: WorkExperienceCreate, _: bool = Depends(require_admin), db: Session = Depends(get_db)):
+    item = WorkExperience(**body.model_dump())
+    db.add(item)
+    db.commit()
+    db.refresh(item)
+    return item
+
+
+@app.put("/api/admin/work/{item_id}", response_model=WorkExperienceOut)
+def update_work(
+    item_id: int,
+    body: WorkExperienceUpdate,
+    _: bool = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    item = db.query(WorkExperience).filter(WorkExperience.id == item_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Work experience not found")
+    for key, value in body.model_dump(exclude_unset=True).items():
+        setattr(item, key, value)
+    db.commit()
+    db.refresh(item)
+    return item
+
+
+@app.delete("/api/admin/work/{item_id}")
+def delete_work(item_id: int, _: bool = Depends(require_admin), db: Session = Depends(get_db)):
+    item = db.query(WorkExperience).filter(WorkExperience.id == item_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Work experience not found")
+    db.delete(item)
+    db.commit()
+    return {"ok": True}
+
+
+@app.get("/api/admin/experience-projects", response_model=list[ExperienceProjectOut])
+def admin_list_experience_projects(_: bool = Depends(require_admin), db: Session = Depends(get_db)):
+    return db.query(ExperienceProject).order_by(ExperienceProject.sort_order).all()
+
+
+@app.get("/api/admin/experience-projects/{project_id}", response_model=ExperienceProjectDetailOut)
+def admin_get_experience_project(project_id: int, _: bool = Depends(require_admin), db: Session = Depends(get_db)):
+    project = db.query(ExperienceProject).filter(ExperienceProject.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    try:
+        components = [MLComponent(**c) for c in json.loads(project.ml_components or "[]")]
+    except (json.JSONDecodeError, TypeError, ValueError):
+        components = []
+    return ExperienceProjectDetailOut(
+        id=project.id,
+        slug=project.slug,
+        title=project.title,
+        summary=project.summary,
+        role_context=project.role_context,
+        sort_order=project.sort_order,
+        ml_components=components,
+        technical_detail=project.technical_detail,
+    )
+
+
+@app.post("/api/admin/experience-projects", response_model=ExperienceProjectOut)
+def create_experience_project(
+    body: ExperienceProjectCreate,
+    _: bool = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    slug = body.slug or slugify(body.title)
+    if db.query(ExperienceProject).filter(ExperienceProject.slug == slug).first():
+        raise HTTPException(status_code=400, detail="Slug already exists")
+    project = ExperienceProject(
+        **body.model_dump(exclude={"slug", "ml_components"}),
+        slug=slug,
+        ml_components=_validate_ml_components(body.ml_components),
+    )
+    db.add(project)
+    db.commit()
+    db.refresh(project)
+    return project
+
+
+@app.put("/api/admin/experience-projects/{project_id}", response_model=ExperienceProjectOut)
+def update_experience_project(
+    project_id: int,
+    body: ExperienceProjectUpdate,
+    _: bool = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    project = db.query(ExperienceProject).filter(ExperienceProject.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    data = body.model_dump(exclude_unset=True)
+    if "slug" in data and data["slug"]:
+        existing = db.query(ExperienceProject).filter(
+            ExperienceProject.slug == data["slug"], ExperienceProject.id != project_id
+        ).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="Slug already exists")
+    if "ml_components" in data and data["ml_components"] is not None:
+        data["ml_components"] = _validate_ml_components(data["ml_components"])
+    for key, value in data.items():
+        setattr(project, key, value)
+    db.commit()
+    db.refresh(project)
+    return project
+
+
+@app.delete("/api/admin/experience-projects/{project_id}")
+def delete_experience_project(project_id: int, _: bool = Depends(require_admin), db: Session = Depends(get_db)):
+    project = db.query(ExperienceProject).filter(ExperienceProject.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    db.delete(project)
+    db.commit()
+    return {"ok": True}
+
+
 # --- Projects ---
 
 @app.get("/api/projects", response_model=list[ProjectOut])
@@ -799,22 +1221,132 @@ def update_identity_card(
     return card
 
 
+def _pick_daily_quote(db: Session, today: str) -> InspirationItem | None:
+    assigned = (
+        db.query(InspirationItem)
+        .filter(InspirationItem.kind == "quote", InspirationItem.entry_date == today)
+        .first()
+    )
+    if assigned:
+        return assigned
+
+    pool = (
+        db.query(InspirationItem)
+        .filter(InspirationItem.kind == "quote", InspirationItem.entry_date == "")
+        .order_by(InspirationItem.sort_order, InspirationItem.id)
+        .all()
+    )
+    if not pool:
+        return None
+
+    ordinal = date.fromisoformat(today).toordinal()
+    return pool[ordinal % len(pool)]
+
+
+# --- Inspiration (private) ---
+
+@app.get("/api/admin/inspiration", response_model=list[InspirationItemOut])
+def list_inspiration(
+    kind: str | None = None,
+    _: bool = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    q = db.query(InspirationItem)
+    if kind:
+        q = q.filter(InspirationItem.kind == kind)
+    return q.order_by(InspirationItem.sort_order, InspirationItem.created_at.desc()).all()
+
+
+@app.get("/api/admin/inspiration/today", response_model=InspirationTodayOut)
+def inspiration_today(
+    entry_date: str | None = None,
+    _: bool = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    today = entry_date or date.today().isoformat()
+    daily_quote = _pick_daily_quote(db, today)
+    moves_me = (
+        db.query(InspirationItem)
+        .filter(InspirationItem.kind == "moves_me")
+        .order_by(InspirationItem.sort_order, InspirationItem.created_at.desc())
+        .all()
+    )
+    return InspirationTodayOut(daily_quote=daily_quote, moves_me=moves_me)
+
+
+@app.post("/api/admin/inspiration", response_model=InspirationItemOut)
+def create_inspiration(
+    body: InspirationItemCreate,
+    _: bool = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    if body.kind not in ("quote", "moves_me"):
+        raise HTTPException(status_code=400, detail="kind must be 'quote' or 'moves_me'")
+    item = InspirationItem(**body.model_dump())
+    db.add(item)
+    db.commit()
+    db.refresh(item)
+    return item
+
+
+@app.put("/api/admin/inspiration/{item_id}", response_model=InspirationItemOut)
+def update_inspiration(
+    item_id: int,
+    body: InspirationItemUpdate,
+    _: bool = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    item = db.query(InspirationItem).filter(InspirationItem.id == item_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    data = body.model_dump(exclude_unset=True)
+    if "kind" in data and data["kind"] not in ("quote", "moves_me"):
+        raise HTTPException(status_code=400, detail="kind must be 'quote' or 'moves_me'")
+    for key, value in data.items():
+        setattr(item, key, value)
+    db.commit()
+    db.refresh(item)
+    return item
+
+
+@app.delete("/api/admin/inspiration/{item_id}")
+def delete_inspiration(item_id: int, _: bool = Depends(require_admin), db: Session = Depends(get_db)):
+    item = db.query(InspirationItem).filter(InspirationItem.id == item_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    db.delete(item)
+    db.commit()
+    return {"ok": True}
+
+
 # --- Site config ---
 
-@app.get("/api/config")
-def site_config():
-    return {
-        "name": os.environ.get("SITE_NAME", "srikanthsistu website"),
-        "tagline": os.environ.get("SITE_TAGLINE", "writing, systems & photography"),
-        "location": os.environ.get("SITE_LOCATION", "Lisbon"),
-        "github": os.environ.get("SITE_GITHUB", "https://github.com/sistusrikanth"),
-        "twitter": os.environ.get("SITE_TWITTER", ""),
-        "email": os.environ.get("SITE_EMAIL", ""),
-        "now_text": os.environ.get(
-            "SITE_NOW_TEXT",
-            "Writing up a piece on KV-cache eviction. Shooting a roll of Portra in Lisbon.",
-        ),
-    }
+@app.get("/api/config", response_model=SiteSettingsOut)
+def site_config(db: Session = Depends(get_db)):
+    return _settings_out(_get_or_create_settings(db))
+
+
+@app.get("/api/admin/settings", response_model=SiteSettingsOut)
+def admin_get_settings(_: bool = Depends(require_admin), db: Session = Depends(get_db)):
+    return _settings_out(_get_or_create_settings(db))
+
+
+@app.put("/api/admin/settings", response_model=SiteSettingsOut)
+def admin_update_settings(
+    body: SiteSettingsUpdate,
+    _: bool = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    settings = _get_or_create_settings(db)
+    data = body.model_dump(exclude_unset=True)
+    if "index_explore" in data and data["index_explore"] is not None:
+        settings.index_explore = json.dumps([c.model_dump() for c in data["index_explore"]])
+        del data["index_explore"]
+    for key, value in data.items():
+        setattr(settings, key, value)
+    db.commit()
+    db.refresh(settings)
+    return _settings_out(settings)
 
 
 # --- Static files (production) ---

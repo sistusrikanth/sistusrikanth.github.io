@@ -1,14 +1,19 @@
 import type {
   Article,
   DayEntry,
+  Education,
   Experience,
+  ExperienceProject,
   ExperienceProjectDetail,
   IdentityCard,
+  InspirationItem,
+  InspirationToday,
   PhotoLink,
   Project,
   SiteConfig,
   StartupIdea,
   WeekSummary,
+  WorkExperience,
 } from "./types";
 import { API } from "./config";
 
@@ -143,6 +148,104 @@ export const api = {
       headers: authHeaders(token),
       body: JSON.stringify({ content }),
     }),
+
+  adminGetSettings: (token: string) =>
+    fetchJson<SiteConfig>(`${API}/admin/settings`, { headers: authHeaders(token) }),
+
+  updateSettings: (token: string, data: Partial<SiteConfig>) =>
+    fetchJson<SiteConfig>(`${API}/admin/settings`, {
+      method: "PUT",
+      headers: authHeaders(token),
+      body: JSON.stringify(data),
+    }),
+
+  updatePhoto: (token: string, id: number, data: Partial<PhotoLink>) =>
+    fetchJson<PhotoLink>(`${API}/admin/photos/${id}`, {
+      method: "PUT",
+      headers: authHeaders(token),
+      body: JSON.stringify(data),
+    }),
+
+  adminGetProjects: (token: string) =>
+    fetchJson<Project[]>(`${API}/admin/projects`, { headers: authHeaders(token) }),
+
+  createProject: (token: string, data: Partial<Project>) =>
+    fetchJson<Project>(`${API}/admin/projects`, { method: "POST", headers: authHeaders(token), body: JSON.stringify(data) }),
+
+  updateProject: (token: string, id: number, data: Partial<Project>) =>
+    fetchJson<Project>(`${API}/admin/projects/${id}`, { method: "PUT", headers: authHeaders(token), body: JSON.stringify(data) }),
+
+  deleteProject: (token: string, id: number) =>
+    fetchJson<{ ok: boolean }>(`${API}/admin/projects/${id}`, { method: "DELETE", headers: authHeaders(token) }),
+
+  adminGetIdeas: (token: string) =>
+    fetchJson<StartupIdea[]>(`${API}/admin/ideas`, { headers: authHeaders(token) }),
+
+  createIdea: (token: string, data: Partial<StartupIdea>) =>
+    fetchJson<StartupIdea>(`${API}/admin/ideas`, { method: "POST", headers: authHeaders(token), body: JSON.stringify(data) }),
+
+  updateIdea: (token: string, id: number, data: Partial<StartupIdea>) =>
+    fetchJson<StartupIdea>(`${API}/admin/ideas/${id}`, { method: "PUT", headers: authHeaders(token), body: JSON.stringify(data) }),
+
+  deleteIdea: (token: string, id: number) =>
+    fetchJson<{ ok: boolean }>(`${API}/admin/ideas/${id}`, { method: "DELETE", headers: authHeaders(token) }),
+
+  adminGetEducation: (token: string) =>
+    fetchJson<Education[]>(`${API}/admin/education`, { headers: authHeaders(token) }),
+
+  createEducation: (token: string, data: Partial<Education>) =>
+    fetchJson<Education>(`${API}/admin/education`, { method: "POST", headers: authHeaders(token), body: JSON.stringify(data) }),
+
+  updateEducation: (token: string, id: number, data: Partial<Education>) =>
+    fetchJson<Education>(`${API}/admin/education/${id}`, { method: "PUT", headers: authHeaders(token), body: JSON.stringify(data) }),
+
+  deleteEducation: (token: string, id: number) =>
+    fetchJson<{ ok: boolean }>(`${API}/admin/education/${id}`, { method: "DELETE", headers: authHeaders(token) }),
+
+  adminGetWork: (token: string) =>
+    fetchJson<WorkExperience[]>(`${API}/admin/work`, { headers: authHeaders(token) }),
+
+  createWork: (token: string, data: Partial<WorkExperience>) =>
+    fetchJson<WorkExperience>(`${API}/admin/work`, { method: "POST", headers: authHeaders(token), body: JSON.stringify(data) }),
+
+  updateWork: (token: string, id: number, data: Partial<WorkExperience>) =>
+    fetchJson<WorkExperience>(`${API}/admin/work/${id}`, { method: "PUT", headers: authHeaders(token), body: JSON.stringify(data) }),
+
+  deleteWork: (token: string, id: number) =>
+    fetchJson<{ ok: boolean }>(`${API}/admin/work/${id}`, { method: "DELETE", headers: authHeaders(token) }),
+
+  adminGetExperienceProjects: (token: string) =>
+    fetchJson<ExperienceProject[]>(`${API}/admin/experience-projects`, { headers: authHeaders(token) }),
+
+  adminGetExperienceProject: (token: string, id: number) =>
+    fetchJson<ExperienceProjectDetail>(`${API}/admin/experience-projects/${id}`, { headers: authHeaders(token) }),
+
+  createExperienceProject: (token: string, data: Record<string, unknown>) =>
+    fetchJson<ExperienceProject>(`${API}/admin/experience-projects`, { method: "POST", headers: authHeaders(token), body: JSON.stringify(data) }),
+
+  updateExperienceProject: (token: string, id: number, data: Record<string, unknown>) =>
+    fetchJson<ExperienceProject>(`${API}/admin/experience-projects/${id}`, { method: "PUT", headers: authHeaders(token), body: JSON.stringify(data) }),
+
+  deleteExperienceProject: (token: string, id: number) =>
+    fetchJson<{ ok: boolean }>(`${API}/admin/experience-projects/${id}`, { method: "DELETE", headers: authHeaders(token) }),
+
+  getInspiration: (token: string, kind?: string) =>
+    fetchJson<InspirationItem[]>(`${API}/admin/inspiration${kind ? `?kind=${kind}` : ""}`, { headers: authHeaders(token) }),
+
+  getInspirationToday: (token: string, entryDate?: string) =>
+    fetchJson<InspirationToday>(
+      `${API}/admin/inspiration/today${entryDate ? `?entry_date=${entryDate}` : ""}`,
+      { headers: authHeaders(token) },
+    ),
+
+  createInspiration: (token: string, data: Partial<InspirationItem>) =>
+    fetchJson<InspirationItem>(`${API}/admin/inspiration`, { method: "POST", headers: authHeaders(token), body: JSON.stringify(data) }),
+
+  updateInspiration: (token: string, id: number, data: Partial<InspirationItem>) =>
+    fetchJson<InspirationItem>(`${API}/admin/inspiration/${id}`, { method: "PUT", headers: authHeaders(token), body: JSON.stringify(data) }),
+
+  deleteInspiration: (token: string, id: number) =>
+    fetchJson<{ ok: boolean }>(`${API}/admin/inspiration/${id}`, { method: "DELETE", headers: authHeaders(token) }),
 };
 
 export function formatDate(iso: string): string {

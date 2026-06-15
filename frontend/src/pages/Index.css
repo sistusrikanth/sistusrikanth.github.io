@@ -24,6 +24,27 @@
   margin-bottom: 32px;
 }
 
+.index-mission {
+  padding: 28px 32px;
+  margin-bottom: 32px;
+  max-width: 640px;
+  border-left: 3px solid var(--accent);
+}
+
+.index-mission-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+
+.index-mission-text {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+
 .index-cta {
   display: flex;
   gap: 12px;

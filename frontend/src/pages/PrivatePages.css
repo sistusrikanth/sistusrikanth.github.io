@@ -395,6 +395,125 @@
   color: var(--text);
 }
 
+.inspiration-date-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 24px 0 32px;
+}
+
+.inspiration-date-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.inspiration-date-row input[type="date"] {
+  padding: 8px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 0.85rem;
+}
+
+.inspiration-edit-link {
+  font-size: 0.8rem;
+  margin-left: auto;
+}
+
+.inspiration-daily {
+  padding: 40px 36px;
+  margin-bottom: 48px;
+  text-align: center;
+}
+
+.inspiration-daily-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 24px;
+}
+
+.inspiration-quote {
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  line-height: 1.45;
+  color: var(--text);
+  margin: 0 0 20px;
+  max-width: 720px;
+  margin-inline: auto;
+}
+
+.inspiration-source {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.inspiration-note {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.inspiration-moves {
+  margin-bottom: 48px;
+}
+
+.inspiration-moves-header {
+  margin-bottom: 24px;
+}
+
+.inspiration-moves-header h2 {
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.inspiration-moves-desc {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.inspiration-moves-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.inspiration-moves-card {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 160px;
+}
+
+.inspiration-moves-content {
+  font-size: 1.05rem;
+  line-height: 1.65;
+  flex: 1;
+}
+
+.inspiration-moves-source {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.inspiration-admin-preview {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+
 @media (max-width: 600px) {
   .week-strip {
     grid-template-columns: repeat(4, 1fr);

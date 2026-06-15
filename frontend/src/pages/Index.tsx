@@ -1,8 +1,16 @@
 import { Link, useOutletContext } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { api, formatDate } from "../lib/api";
-import type { Article, SiteConfig } from "../lib/types";
+import type { Article, ExploreCard, SiteConfig } from "../lib/types";
 import "./Index.css";
+
+const DEFAULT_CARDS: ExploreCard[] = [
+  { num: "01", icon: "✎", title: "Writing", desc: "Research papers, taken apart and rebuilt from their core components.", to: "/writing" },
+  { num: "02", icon: "◈", title: "Systems", desc: "Designing the ML systems everyone uses — and showing the reasoning.", to: "/systems" },
+  { num: "03", icon: "◎", title: "Photography", desc: "A working portfolio. Cities, light, and the occasional whiteboard.", to: "/photography" },
+  { num: "04", icon: "{ }", title: "Code", desc: "Small, sharp pieces — annotated line by line.", to: "/writing?category=notes" },
+  { num: "05", icon: "↗", title: "Projects", desc: "Things I'm building and startup ideas I can't stop thinking about.", to: "/projects" },
+];
 
 export default function IndexPage() {
   const config = useOutletContext<SiteConfig>();
@@ -21,22 +29,28 @@ export default function IndexPage() {
     });
   }, []);
 
-  const exploreCards = [
-    { num: "01", icon: "✎", title: "Writing", desc: "Research papers, taken apart and rebuilt from their core components.", to: "/writing", count: `${counts.writing} essays` },
-    { num: "02", icon: "◈", title: "Systems", desc: "Designing the ML systems everyone uses — and showing the reasoning.", to: "/systems", count: `${counts.systems} designs` },
-    { num: "03", icon: "◎", title: "Photography", desc: "A working portfolio. Cities, light, and the occasional whiteboard.", to: "/photography", count: `${counts.photos} frames` },
-    { num: "04", icon: "{ }", title: "Code", desc: "Small, sharp pieces — annotated line by line.", to: "/writing?category=notes", count: "snippets" },
-    { num: "05", icon: "↗", title: "Projects", desc: "Things I'm building and startup ideas I can't stop thinking about.", to: "/projects", count: `${counts.projects} active` },
-  ];
+  const exploreCards = (config.index_explore?.length ? config.index_explore : DEFAULT_CARDS).map((card) => {
+    let count = "";
+    if (card.to === "/writing") count = `${counts.writing} essays`;
+    else if (card.to === "/systems") count = `${counts.systems} designs`;
+    else if (card.to === "/photography") count = `${counts.photos} frames`;
+    else if (card.to.includes("notes")) count = "snippets";
+    else if (card.to === "/projects") count = `${counts.projects} active`;
+    return { ...card, count };
+  });
 
   return (
     <div className="index-page">
-      <p className="index-eyebrow mono">Writer + ML Systems + Photography</p>
-      <h1 className="index-hero serif">I break complex systems down to their essence.</h1>
-      <p className="index-intro">
-        I read the research so the ideas show through, design machine-learning systems in the open,
-        and photograph the world in between.
-      </p>
+      <p className="index-eyebrow mono">{config.index_eyebrow}</p>
+      <h1 className="index-hero serif">{config.index_hero}</h1>
+      <p className="index-intro">{config.index_intro}</p>
+
+      {config.mission_statement && (
+        <section className="index-mission card">
+          <p className="index-mission-label mono">Mission</p>
+          <p className="index-mission-text serif">{config.mission_statement}</p>
+        </section>
+      )}
 
       <div className="index-cta">
         <Link to="/writing" className="btn btn-primary">Read the writing →</Link>

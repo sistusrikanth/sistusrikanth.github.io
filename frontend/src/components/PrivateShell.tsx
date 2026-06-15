@@ -19,9 +19,8 @@ export default function PrivateShell({ children }: Props) {
   return (
     <div className="private-shell">
       <nav className="private-nav">
-        <Link to="/admin" className={pathname === "/admin" ? "active" : ""}>Admin</Link>
-        <Link to="/private/days" className={pathname === "/private/days" ? "active" : ""}>Day tracker</Link>
-        <Link to="/private/identity" className={pathname === "/private/identity" ? "active" : ""}>Who I am</Link>
+        <Link to="/admin" className={pathname.startsWith("/admin") ? "active" : ""}>Admin</Link>
+        <Link to="/private/inspiration" className={pathname === "/private/inspiration" ? "active" : ""}>Inspiration</Link>
         <span className="private-nav-spacer" />
         <Link to="/">← Site</Link>
         <button type="button" onClick={handleLogout}>Sign out</button>

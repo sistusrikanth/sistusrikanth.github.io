@@ -41,6 +41,10 @@
   max-width: 1100px;
 }
 
+.admin-full-width {
+  width: 100%;
+}
+
 .admin-header {
   display: flex;
   justify-content: space-between;
@@ -52,12 +56,53 @@
   font-size: 2rem;
 }
 
+.admin-subtabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.admin-subtabs button {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  padding: 6px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+}
+
+.admin-subtabs button.active {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.admin-subsection-title {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+}
+
+.admin-form-row-2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.admin-nested-card {
+  padding: 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  background: var(--bg-elevated);
+}
+
 .admin-tabs {
   display: flex;
   gap: 16px;
   margin-bottom: 32px;
   border-bottom: 1px solid var(--border-subtle);
   padding-bottom: 12px;
+  flex-wrap: wrap;
 }
 
 .admin-tabs button {

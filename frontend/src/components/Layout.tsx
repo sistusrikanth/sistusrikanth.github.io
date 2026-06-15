@@ -13,6 +13,11 @@ const DEFAULT_CONFIG: SiteConfig = {
   twitter: "",
   email: "",
   now_text: "",
+  index_eyebrow: "Writer + ML Systems + Photography",
+  index_hero: "I break complex systems down to their essence.",
+  index_intro: "I read the research so the ideas show through, design machine-learning systems in the open, and photograph the world in between.",
+  mission_statement: "Make the hidden wiring visible — through clear writing, honest systems, and a steady eye on the world.",
+  index_explore: [],
 };
 
 export default function Layout() {

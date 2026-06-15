@@ -127,3 +127,35 @@ class IdentityCard(Base):
     category = Column(String(50), unique=True, nullable=False, index=True)
     content = Column(Text, default="")
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
+
+
+class SiteSettings(Base):
+    __tablename__ = "site_settings"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(200), default="")
+    tagline = Column(String(500), default="")
+    location = Column(String(200), default="")
+    github = Column(String(500), default="")
+    twitter = Column(String(500), default="")
+    email = Column(String(200), default="")
+    now_text = Column(Text, default="")
+    index_eyebrow = Column(String(300), default="")
+    index_hero = Column(Text, default="")
+    index_intro = Column(Text, default="")
+    mission_statement = Column(Text, default="")
+    index_explore = Column(Text, default="[]")
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
+
+
+class InspirationItem(Base):
+    __tablename__ = "inspiration_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    kind = Column(String(20), default="quote")  # quote, moves_me
+    content = Column(Text, nullable=False)
+    source = Column(String(500), default="")
+    entry_date = Column(String(10), default="")  # optional YYYY-MM-DD for a specific day's quote
+    sort_order = Column(Integer, default=0)
+    created_at = Column(DateTime, default=utcnow)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)

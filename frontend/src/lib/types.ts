@@ -1,3 +1,11 @@
+export interface ExploreCard {
+  num: string;
+  icon: string;
+  title: string;
+  desc: string;
+  to: string;
+}
+
 export interface SiteConfig {
   name: string;
   tagline: string;
@@ -6,6 +14,11 @@ export interface SiteConfig {
   twitter: string;
   email: string;
   now_text: string;
+  index_eyebrow: string;
+  index_hero: string;
+  index_intro: string;
+  mission_statement: string;
+  index_explore: ExploreCard[];
 }
 
 export interface Article {
@@ -129,4 +142,20 @@ export interface Experience {
   education: Education[];
   work: WorkExperience[];
   projects: ExperienceProject[];
+}
+
+export interface InspirationItem {
+  id: number;
+  kind: "quote" | "moves_me";
+  content: string;
+  source: string;
+  entry_date: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InspirationToday {
+  daily_quote: InspirationItem | null;
+  moves_me: InspirationItem[];
 }

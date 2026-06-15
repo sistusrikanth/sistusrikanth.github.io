@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import PrivateGate from "./components/PrivateGate";
 import IndexPage from "./pages/Index";
@@ -10,8 +10,7 @@ import ProjectsPage from "./pages/Projects";
 import ExperiencePage from "./pages/Experience";
 import ExperienceProjectPage from "./pages/ExperienceProject";
 import AdminPage from "./pages/Admin";
-import DayTrackerPage from "./pages/DayTracker";
-import IdentityPage from "./pages/Identity";
+import InspirationPage from "./pages/Inspiration";
 
 export default function App() {
   return (
@@ -27,8 +26,9 @@ export default function App() {
         <Route path="experience/:slug" element={<ExperienceProjectPage />} />
       </Route>
       <Route path="admin" element={<PrivateGate><AdminPage /></PrivateGate>} />
-      <Route path="private/days" element={<PrivateGate><DayTrackerPage /></PrivateGate>} />
-      <Route path="private/identity" element={<PrivateGate><IdentityPage /></PrivateGate>} />
+      <Route path="private/inspiration" element={<PrivateGate><InspirationPage /></PrivateGate>} />
+      <Route path="private/days" element={<Navigate to="/admin?tab=days" replace />} />
+      <Route path="private/identity" element={<Navigate to="/admin?tab=identity" replace />} />
     </Routes>
   );
 }
