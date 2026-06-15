@@ -8,7 +8,7 @@ on:
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   REGION: us-central1
-  SERVICE: personal-site
+  SERVICE: srikanthsistu-website
   DATA_BUCKET: ${{ secrets.GCP_DATA_BUCKET }}
 
 jobs:
@@ -42,6 +42,15 @@ jobs:
 
       - name: Deploy to Cloud Run
         run: |
+          cat > env.yaml <<'ENVEOF'
+          DATA_DIR: /data
+          SITE_NAME: "srikanthsistu website"
+          SITE_TAGLINE: "writing, systems & photography"
+          SITE_LOCATION: Lisbon
+          SITE_GITHUB: https://github.com/sistusrikanth
+          ENVEOF
+          echo "ADMIN_PASSWORD: \"${{ secrets.ADMIN_PASSWORD }}\"" >> env.yaml
+          echo "ADMIN_SECRET_KEY: \"${{ secrets.ADMIN_SECRET_KEY }}\"" >> env.yaml
           gcloud run deploy ${{ env.SERVICE }} \
             --image "$IMAGE" \
             --region ${{ env.REGION }} \
@@ -53,4 +62,4 @@ jobs:
             --max-instances 2 \
             --add-volume name=data,type=cloud-storage,bucket=${{ env.DATA_BUCKET }} \
             --add-volume-mount volume=data,mount-path=/data \
-            --set-env-vars "DATA_DIR=/data,SITE_NAME=srikanth sistu,ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }},ADMIN_SECRET_KEY=${{ secrets.ADMIN_SECRET_KEY }}"
+            --env-vars-file env.yaml

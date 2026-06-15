@@ -6,7 +6,7 @@ import { api } from "../lib/api";
 import type { SiteConfig } from "../lib/types";
 
 const DEFAULT_CONFIG: SiteConfig = {
-  name: "srikanth sistu",
+  name: "srikanthsistu website",
   tagline: "writing, systems & photography",
   location: "Lisbon",
   github: "",

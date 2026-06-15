@@ -1,4 +1,5 @@
 import ReactMarkdown from "react-markdown";
+import { assetUrl } from "../lib/config";
 import ExcalidrawEmbed from "./ExcalidrawEmbed";
 
 const EXCALIDRAW_RE = /<!--\s*excalidraw:(.+?)\s*-->/g;
@@ -32,7 +33,7 @@ export default function ArticleContent({ content }: { content: string }) {
           <ExcalidrawEmbed key={`ex-${i}`} src={part.value} />
         ) : (
           <div key={`md-${i}`} className="markdown-body">
-            <ReactMarkdown>{part.value}</ReactMarkdown>
+            <ReactMarkdown urlTransform={assetUrl}>{part.value}</ReactMarkdown>
           </div>
         ),
       )}

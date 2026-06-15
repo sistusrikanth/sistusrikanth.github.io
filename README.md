@@ -31,6 +31,35 @@ Go to `/admin` to sign in and:
 
 Articles and uploads are stored under `data/` (SQLite at `data/site.db`, files in `data/uploads/`).
 
+## Deploy to GitHub Pages (sistusrikanth.github.io)
+
+The **frontend** is hosted free on GitHub Pages. The **API** (articles, admin, uploads, day tracker) stays on Cloud Run.
+
+### One-time setup
+
+1. **Rename the GitHub repo** to `sistusrikanth.github.io` (Settings → General → Repository name).  
+   That gives you `https://sistusrikanth.github.io` instead of `…/personal-site`.
+
+2. **Enable GitHub Pages** in repo Settings → Pages → Source: **GitHub Actions**.
+
+3. Push to `main` — `.github/workflows/pages.yml` builds and deploys automatically.
+
+### How it works
+
+| Part | Host |
+|------|------|
+| React site | `https://sistusrikanth.github.io` |
+| API + database + uploads | `https://srikanthsistu-website-….run.app` |
+
+Admin: `https://sistusrikanth.github.io/admin` (calls Cloud Run API in the background).
+
+### Local Pages build (optional)
+
+```bash
+cd frontend
+VITE_API_URL=https://srikanthsistu-website-zxwzvy3hpq-uc.a.run.app npm run build:pages
+```
+
 ## Deploy to GCP Cloud Run (free tier)
 
 Cloud Run's always-free tier includes **2 million requests/month** — enough for a personal site.
@@ -56,7 +85,7 @@ The script will:
 2. Create a GCS bucket for persistent SQLite + uploads
 3. Deploy the container with `/data` mounted to that bucket
 
-Your site will be at `https://personal-site-XXXXX-uc.a.run.app`
+Your site will be at `https://srikanthsistu-website-XXXXX-uc.a.run.app`
 
 ### Manual deploy
 
@@ -64,12 +93,12 @@ Your site will be at `https://personal-site-XXXXX-uc.a.run.app`
 gcloud config set project YOUR_PROJECT_ID
 gcloud services enable run.googleapis.com artifactregistry.googleapis.com cloudbuild.googleapis.com storage.googleapis.com
 
-gcloud run deploy personal-site \
+gcloud run deploy srikanthsistu-website \
   --source . \
   --region us-central1 \
   --allow-unauthenticated \
   --memory 512Mi \
-  --set-env-vars "DATA_DIR=/data,SITE_NAME=srikanth sistu,ADMIN_PASSWORD=...,ADMIN_SECRET_KEY=..."
+  --set-env-vars "DATA_DIR=/data,SITE_NAME=srikanthsistu website,ADMIN_PASSWORD=...,ADMIN_SECRET_KEY=..."
 ```
 
 For production, always mount a GCS volume at `/data` so articles survive container restarts — the deploy script does this automatically.

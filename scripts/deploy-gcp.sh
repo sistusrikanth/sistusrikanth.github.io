@@ -5,7 +5,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 REGION="${REGION:-us-central1}"
-SERVICE="${SERVICE:-personal-site}"
+SERVICE="${SERVICE:-srikanthsistu-website}"
 PROJECT_ID="${1:-${GCP_PROJECT_ID:-}}"
 
 if [[ -z "$PROJECT_ID" ]]; then
@@ -57,6 +57,19 @@ gcloud storage buckets add-iam-policy-binding "gs://${BUCKET}" \
 
 echo "→ Deploying to Cloud Run..."
 cd "$ROOT"
+
+ENV_FILE="$(mktemp)"
+trap 'rm -f "$ENV_FILE"' EXIT
+cat > "$ENV_FILE" <<EOF
+DATA_DIR: /data
+SITE_NAME: "srikanthsistu website"
+SITE_TAGLINE: "writing, systems & photography"
+SITE_LOCATION: Lisbon
+SITE_GITHUB: https://github.com/sistusrikanth
+ADMIN_PASSWORD: "${ADMIN_PASSWORD}"
+ADMIN_SECRET_KEY: "${ADMIN_SECRET_KEY}"
+EOF
+
 gcloud run deploy "$SERVICE" \
   --source . \
   --region "$REGION" \
@@ -68,7 +81,7 @@ gcloud run deploy "$SERVICE" \
   --max-instances 2 \
   --add-volume "name=data,type=cloud-storage,bucket=${BUCKET}" \
   --add-volume-mount "volume=data,mount-path=/data" \
-  --set-env-vars "DATA_DIR=/data,SITE_NAME=srikanth sistu,SITE_TAGLINE=writing, systems & photography,SITE_LOCATION=Lisbon,SITE_GITHUB=https://github.com/sistusrikanth,ADMIN_PASSWORD=${ADMIN_PASSWORD},ADMIN_SECRET_KEY=${ADMIN_SECRET_KEY}"
+  --env-vars-file "$ENV_FILE"
 
 URL="$(gcloud run services describe "$SERVICE" --region "$REGION" --format='value(status.url)')"
 echo ""

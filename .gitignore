@@ -8,3 +8,4 @@ data/
 *.pyc
 .DS_Store
 frontend/tsconfig.tsbuildinfo
+frontend/dist/

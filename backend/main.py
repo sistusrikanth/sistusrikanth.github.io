@@ -485,7 +485,11 @@ app = FastAPI(title="Lattice Portfolio API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://sistusrikanth.github.io",
+        "http://localhost:5175",
+        "http://localhost:8080",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -800,7 +804,7 @@ def update_identity_card(
 @app.get("/api/config")
 def site_config():
     return {
-        "name": os.environ.get("SITE_NAME", "srikanth sistu"),
+        "name": os.environ.get("SITE_NAME", "srikanthsistu website"),
         "tagline": os.environ.get("SITE_TAGLINE", "writing, systems & photography"),
         "location": os.environ.get("SITE_LOCATION", "Lisbon"),
         "github": os.environ.get("SITE_GITHUB", "https://github.com/sistusrikanth"),

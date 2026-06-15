@@ -10,8 +10,7 @@ import type {
   StartupIdea,
   WeekSummary,
 } from "./types";
-
-const API = "/api";
+import { API } from "./config";
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
