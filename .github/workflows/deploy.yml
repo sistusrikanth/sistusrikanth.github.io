@@ -1,8 +1,8 @@
 name: Deploy to Cloud Run
 
+# API is deployed manually via ./scripts/deploy-gcp.sh
+# Run this workflow only when GCP secrets are configured.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 env:
