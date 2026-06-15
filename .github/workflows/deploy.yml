@@ -8,7 +8,8 @@ on:
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   REGION: us-central1
-  SERVICE: lattice-portfolio
+  SERVICE: personal-site
+  DATA_BUCKET: ${{ secrets.GCP_DATA_BUCKET }}
 
 jobs:
   deploy:
@@ -50,4 +51,6 @@ jobs:
             --cpu 1 \
             --min-instances 0 \
             --max-instances 2 \
-            --set-env-vars "SITE_NAME=kiran rao,ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }},ADMIN_SECRET_KEY=${{ secrets.ADMIN_SECRET_KEY }}"
+            --add-volume name=data,type=cloud-storage,bucket=${{ env.DATA_BUCKET }} \
+            --add-volume-mount volume=data,mount-path=/data \
+            --set-env-vars "DATA_DIR=/data,SITE_NAME=srikanth sistu,ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }},ADMIN_SECRET_KEY=${{ secrets.ADMIN_SECRET_KEY }}"
