@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { api } from "../lib/api";
-import type { SiteConfig } from "../lib/types";
+import { api } from "../../lib/api";
+import type { SiteConfig } from "../../lib/types";
 
 interface Props {
   token: string;
@@ -12,7 +12,7 @@ export default function AdminSiteTab({ token, onError }: Props) {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    api.adminGetSettings(token).then(setForm).catch((e) => onError(e.message));
+    api.adminGetSettings(token).then(setForm).catch((e: unknown) => onError(e instanceof Error ? e.message : String(e)));
   }, [token, onError]);
 
   if (!form) return <p className="mono private-muted">Loading…</p>;
