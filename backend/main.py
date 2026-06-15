@@ -1338,10 +1338,9 @@ def admin_update_settings(
     db: Session = Depends(get_db),
 ):
     settings = _get_or_create_settings(db)
-    data = body.model_dump(exclude_unset=True)
-    if "index_explore" in data and data["index_explore"] is not None:
-        settings.index_explore = json.dumps([c.model_dump() for c in data["index_explore"]])
-        del data["index_explore"]
+    if body.index_explore is not None:
+        settings.index_explore = json.dumps([c.model_dump() for c in body.index_explore])
+    data = body.model_dump(exclude_unset=True, exclude={"index_explore"})
     for key, value in data.items():
         setattr(settings, key, value)
     db.commit()
